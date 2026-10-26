@@ -1,0 +1,46 @@
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.12.15
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.9.1
+    skops_trusted_types:
+    - numpy.dtype
+    - sklearn.tree._tree.Tree
+is_signature_from_type_hint: false
+metadata:
+  decision_threshold: 0.3181818181818182
+  mlflow_run_id: abab11f068d24ea68c186de792af3d21
+mlflow_version: 3.16.1
+model_id: null
+model_size_bytes: 279657
+model_uuid: c14dc0700db042c2a2b2745eae0a0345
+prompts: null
+signature:
+  inputs: '[{"type": "double", "name": "duration", "required": true}, {"type": "double",
+    "name": "credit_amount", "required": true}, {"type": "double", "name": "installment_commitment",
+    "required": true}, {"type": "double", "name": "residence_since", "required": true},
+    {"type": "double", "name": "age", "required": true}, {"type": "double", "name":
+    "existing_credits", "required": true}, {"type": "double", "name": "num_dependents",
+    "required": true}, {"type": "string", "name": "checking_status", "required": true},
+    {"type": "string", "name": "credit_history", "required": true}, {"type": "string",
+    "name": "purpose", "required": true}, {"type": "string", "name": "savings_status",
+    "required": true}, {"type": "string", "name": "employment", "required": true},
+    {"type": "string", "name": "personal_status", "required": true}, {"type": "string",
+    "name": "other_parties", "required": true}, {"type": "string", "name": "property_magnitude",
+    "required": true}, {"type": "string", "name": "other_payment_plans", "required":
+    true}, {"type": "string", "name": "housing", "required": true}, {"type": "string",
+    "name": "job", "required": true}, {"type": "string", "name": "own_telephone",
+    "required": true}, {"type": "string", "name": "foreign_worker", "required": true}]'
+  outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "int64", "shape": [-1]}}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-10-12 21:53:30.189586'
