@@ -130,6 +130,18 @@ def main() -> int:
     args = parser.parse_args()
 
     cfg = load_config()
+    project_dataset = Path(__file__).resolve().parents[1] / cfg.raw_path
+    if project_dataset.exists() and not args.from_file:
+        import shutil
+        destination = Path(cfg.raw_path)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if project_dataset.resolve() != destination.resolve():
+            shutil.copyfile(project_dataset, destination)
+        print(f"Dataset local copié : {destination}")
+        return 0
+    if Path(cfg.raw_path).exists() and not args.from_file:
+        print(f"Dataset local déjà disponible : {cfg.raw_path}")
+        return 0
     if args.from_file:
         df, source = decode_uci(read_uci_file(args.from_file)), args.from_file
     else:
