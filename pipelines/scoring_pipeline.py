@@ -19,6 +19,7 @@ from pipelines.components import (
     prepare_features,
     train_model,
     validate_data,
+   register_model,
 )
 
 TRAIN = yaml.safe_load(Path("params.yaml").read_text(encoding="utf-8"))["train"]
@@ -60,12 +61,34 @@ def scoring_pipeline(
         kfp_run_id=dsl.PIPELINE_JOB_ID_PLACEHOLDER,  # remplacé par l'id du run KFP
     )
 
-    evaluate_model(
+    eval_task = evaluate_model(
         model=train_task.outputs["model"],
         test_data=prep_task.outputs["test_data"],
         run_id=train_task.outputs["Output"],
         mlflow_uri=mlflow_uri,
     )
+
+    register_task = register_model(
+        run_id=train_task.outputs["Output"],
+        mlflow_uri=mlflow_uri,
+    )
+    register_task.after(eval_task)
+
+    # Étape 6 — Fiabilité et optimisation
+    for task in [ingest_task, validate_task, prep_task, train_task, eval_task, register_task]:
+        task.set_retry(num_retries=2)
+        task.set_cpu_request("250m")
+        task.set_cpu_limit("1")
+        task.set_memory_request("256Mi")
+        task.set_memory_limit("2Gi")
+
+    validate_task.set_caching_options(enable_caching=True)
+    prep_task.set_caching_options(enable_caching=True)
+
+    train_task.set_caching_options(enable_caching=False)
+    eval_task.set_caching_options(enable_caching=False)
+    register_task.set_caching_options(enable_caching=False)
+
 
 
 if __name__ == "__main__":
