@@ -28,7 +28,7 @@ from kfp.dsl import (
 
 # Image construite et poussée à l'étape 2.4. Nouveau code dans l'image = nouveau tag.
 # Surcharge possible à la compilation : PIPELINE_IMAGE=… python -m pipelines.scoring_pipeline
-PIPELINE_IMAGE = os.getenv("PIPELINE_IMAGE", "localhost:5001/scoring-pipeline:1.1.0")
+PIPELINE_IMAGE = os.getenv("PIPELINE_IMAGE", "localhost:5001/scoring-pipeline:1.2.0")
 # Serveur MLflow du cours vu depuis un pod (DNS interne <service>.<namespace>)
 MLFLOW_URI = "http://mlflow.mlflow:5000"
 
