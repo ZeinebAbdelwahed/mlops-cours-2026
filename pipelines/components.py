@@ -207,3 +207,39 @@ def register_model(run_id: str, mlflow_uri: str) -> str:
         f"name = '{MODEL_NAME}' and run_id = '{run_id}'"
     )
     return str(versions[0].version)
+
+
+@dsl.component(base_image=PIPELINE_IMAGE, install_kfp_package=False)
+def detect_drift(
+    reference_data: Input[Dataset],
+    current_data: Input[Dataset],
+    report: Output[Artifact],
+    table: Output[Markdown],
+    html: Output[HTML],
+    drift: Output[Metrics],
+    ks_alpha: float,
+    psi_threshold: float,
+    drift_share: float,
+    fail_on_drift: bool,
+) -> bool:
+    """Gate : python -m src.detect_drift ; renvoie True si les données courantes dérivent."""
+    import json
+    from pathlib import Path
+
+    from pipelines.stage import run_stage
+    from src.detect_drift import REPORT_HTML, REPORT_JSON, REPORT_MD
+
+    reference, current = "data/drift/reference.csv", "data/drift/current.csv"
+    run_stage(
+        "src.detect_drift",
+        args=[reference, current, "--ks-alpha", ks_alpha, "--psi-threshold", psi_threshold,
+              "--drift-share", drift_share, *([] if fail_on_drift else ["--no-fail"])],
+        inputs={reference: reference_data.path, current: current_data.path},
+        outputs={str(REPORT_JSON): report.path, str(REPORT_MD): table.path,
+                 str(REPORT_HTML): html.path},
+    )  # fmt: skip
+    summary = json.loads(Path(report.path).read_text())
+    for name in ("n_columns", "n_drifted", "share_drifted"):
+        drift.log_metric(name, summary[name])
+    drift.log_metric("evidently_drifted_columns", summary["evidently"]["drifted_columns"])
+    return bool(summary["drift_detected"])
