@@ -14,11 +14,21 @@ paramètre ne doit dépendre d'une constante de ce module.
 import os
 
 from kfp import dsl
-from kfp.dsl import Artifact, ClassificationMetrics, Dataset, Input, Metrics, Model, Output
+from kfp.dsl import (
+    Artifact,
+    ClassificationMetrics,
+    Dataset,
+    Input,
+    Metrics,
+    Model,
+    Output,
+    HTML,
+    Markdown,
+)
 
 # Image construite et poussée à l'étape 2.4. Nouveau code dans l'image = nouveau tag.
 # Surcharge possible à la compilation : PIPELINE_IMAGE=… python -m pipelines.scoring_pipeline
-PIPELINE_IMAGE = os.getenv("PIPELINE_IMAGE", "localhost:5001/scoring-pipeline:1.0.1")
+PIPELINE_IMAGE = os.getenv("PIPELINE_IMAGE", "localhost:5001/scoring-pipeline:1.1.0")
 # Serveur MLflow du cours vu depuis un pod (DNS interne <service>.<namespace>)
 MLFLOW_URI = "http://mlflow.mlflow:5000"
 
@@ -43,25 +53,30 @@ def ingest_data(raw_data: Output[Dataset]) -> None:
 def validate_data(
     raw_data: Input[Dataset],
     report: Output[Artifact],
+    html: Output[HTML],
     checks: Output[Metrics],
 ) -> None:
-    """Gate : python -m src.validate_data ; un contrôle en échec fait échouer le step."""
+    """Gate : suite Great Expectations ; un échec arrête le run."""
     import json
     from pathlib import Path
 
     from pipelines.stage import run_stage
     from src.dataset_config import load_config
-    from src.validate_data import REPORT_JSON
+    from src.validate_data import REPORT_HTML, REPORT_JSON
 
     cfg = load_config()
     run_stage(
         "src.validate_data",
         inputs={cfg.raw_path: raw_data.path},
-        outputs={str(REPORT_JSON): report.path},  # reports/validation.json
+        outputs={
+            str(REPORT_JSON): report.path,
+            str(REPORT_HTML): html.path,
+        },
     )
     summary = json.loads(Path(report.path).read_text())
     for name in ("n_checks", "n_failed", "rows", "positive_rate"):
         checks.log_metric(name, summary[name])
+
 
 
 @dsl.component(base_image=PIPELINE_IMAGE, install_kfp_package=False)

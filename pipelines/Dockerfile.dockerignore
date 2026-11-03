@@ -1,11 +1,10 @@
-# Fichier : pipelines/Dockerfile.dockerignore
-# .dockerignore propre à pipelines/Dockerfile (BuildKit le lit à la place de celui de la
-# racine). Liste blanche : on exclut TOUT, puis on ré-inclut ce que l'image copie.
-# Ni .venv/, ni data/, ni .git/, ni .env (secrets) ne partent dans le contexte de build.
 *
 !dataset.yaml
 !params.yaml
 !src/
+!gx/
+gx/uncommitted/
+!tests/
 !pipelines/requirements.txt
 !pipelines/__init__.py
 !pipelines/stage.py
