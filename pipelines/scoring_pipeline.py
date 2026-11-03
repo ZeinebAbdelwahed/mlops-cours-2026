@@ -1,8 +1,8 @@
-# pipelines/scoring_pipeline.py — version de l'étape 3 (complétée aux étapes 5 et 6)
 """Pipeline KFP « scoring-pipeline » du Lab 2.
 
-ingest -> validate -> prepare -> train -> evaluate
-Compilation : python -m pipelines.scoring_pipeline   (écrit scoring_pipeline.yaml)
+ingest -> validate -> prepare -> train -> evaluate -> register
+
+Compilation : python -m pipelines.scoring_pipeline (écrit scoring_pipeline.yaml)
 Les hyper-paramètres par défaut sont lus dans params.yaml AU MOMENT DE LA COMPILATION :
 params.yaml reste la seule source des valeurs par défaut, comme pour dvc repro.
 """
@@ -10,16 +10,16 @@ params.yaml reste la seule source des valeurs par défaut, comme pour dvc repro.
 from pathlib import Path
 
 import yaml
-from kfp import compiler, dsl
+from kfp import compiler, dsl, kubernetes
 
 from pipelines.components import (
     MLFLOW_URI,
     evaluate_model,
     ingest_data,
     prepare_features,
+    register_model,
     train_model,
     validate_data,
-   register_model,
 )
 
 TRAIN = yaml.safe_load(Path("params.yaml").read_text(encoding="utf-8"))["train"]
@@ -27,24 +27,30 @@ TRAIN = yaml.safe_load(Path("params.yaml").read_text(encoding="utf-8"))["train"]
 
 @dsl.pipeline(
     name="scoring-pipeline",
-    description="Credit scoring : ingest -> validate -> prepare -> train -> evaluate",
+    description="Credit scoring : ingest -> validate -> prepare -> train -> evaluate -> register",
 )
 def scoring_pipeline(
     model_type: str = TRAIN["model"],
     C: float = TRAIN["C"],
-    class_weight: str = str(TRAIN["class_weight"]),  # « none » accepté, comme au Lab 1
+    class_weight: str = str(TRAIN["class_weight"]),
     n_estimators: int = TRAIN["n_estimators"],
-    max_depth: str = str(TRAIN["max_depth"]),  # « none » accepté, comme au Lab 1
+    max_depth: str = str(TRAIN["max_depth"]),
     learning_rate: float = TRAIN["learning_rate"],
     random_state: int = TRAIN["random_state"],
     mlflow_uri: str = MLFLOW_URI,
 ):
+    # Source externe (réseau) : 3 nouvelles tentatives, et jamais plus de 10 min
     ingest_task = ingest_data()
+    ingest_task.set_retry(num_retries=3, backoff_duration="30s")
+    ingest_task.set_cpu_limit("500m").set_memory_limit("512Mi")
+    kubernetes.set_timeout(ingest_task, 600)
 
     validate_task = validate_data(raw_data=ingest_task.outputs["raw_data"])
+    validate_task.set_memory_limit("512Mi")
 
     prep_task = prepare_features(raw_data=ingest_task.outputs["raw_data"])
     prep_task.after(validate_task)  # gate : pas de préparation sans validation réussie
+    prep_task.set_memory_limit("1Gi")
 
     train_task = train_model(
         raw_data=ingest_task.outputs["raw_data"],
@@ -58,8 +64,13 @@ def scoring_pipeline(
         learning_rate=learning_rate,
         random_state=random_state,
         mlflow_uri=mlflow_uri,
-        kfp_run_id=dsl.PIPELINE_JOB_ID_PLACEHOLDER,  # remplacé par l'id du run KFP
+        kfp_run_id=dsl.PIPELINE_JOB_ID_PLACEHOLDER,
     )
+    train_task.set_cpu_request("500m").set_cpu_limit("2")
+    train_task.set_memory_request("512Mi").set_memory_limit("2Gi")
+    kubernetes.set_timeout(train_task, 1800)
+    # Toujours ré-entraîner : chaque run KFP doit produire un nouveau run MLflow
+    train_task.set_caching_options(enable_caching=False)
 
     eval_task = evaluate_model(
         model=train_task.outputs["model"],
@@ -67,28 +78,11 @@ def scoring_pipeline(
         run_id=train_task.outputs["Output"],
         mlflow_uri=mlflow_uri,
     )
+    eval_task.set_memory_limit("1Gi")
 
-    register_task = register_model(
-        run_id=train_task.outputs["Output"],
-        mlflow_uri=mlflow_uri,
-    )
-    register_task.after(eval_task)
-
-    # Étape 6 — Fiabilité et optimisation
-    for task in [ingest_task, validate_task, prep_task, train_task, eval_task, register_task]:
-        task.set_retry(num_retries=2)
-        task.set_cpu_request("250m")
-        task.set_cpu_limit("1")
-        task.set_memory_request("256Mi")
-        task.set_memory_limit("2Gi")
-
-    validate_task.set_caching_options(enable_caching=True)
-    prep_task.set_caching_options(enable_caching=True)
-
-    train_task.set_caching_options(enable_caching=False)
-    eval_task.set_caching_options(enable_caching=False)
-    register_task.set_caching_options(enable_caching=False)
-
+    register_task = register_model(run_id=train_task.outputs["Output"], mlflow_uri=mlflow_uri)
+    register_task.after(eval_task)  # on n'enregistre qu'un modèle évalué
+    register_task.set_memory_limit("1Gi")
 
 
 if __name__ == "__main__":
