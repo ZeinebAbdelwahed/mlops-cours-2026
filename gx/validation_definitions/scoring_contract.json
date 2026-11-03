@@ -1,0 +1,22 @@
+{
+  "data": {
+    "asset": {
+      "id": "a4f2d339-d532-4a2e-8edb-ed563042876c",
+      "name": "dataframe"
+    },
+    "batch_definition": {
+      "id": "901560f0-ffd5-4882-819c-061d4171635e",
+      "name": "full"
+    },
+    "datasource": {
+      "id": "8e99fd96-3807-4ce3-bdbe-71a47b316c01",
+      "name": "scoring"
+    }
+  },
+  "id": "7f6175d4-cd32-4369-a3af-3cc9a97bdf1d",
+  "name": "scoring_contract",
+  "suite": {
+    "id": "a7179b7d-4290-4156-aa42-a43856beb158",
+    "name": "scoring_contract"
+  }
+}
