@@ -169,19 +169,11 @@ C'est correct mais discutable : voir section 4.
 
 ## 6. Captures d'écran
 
-Fichiers rangés dans `reports/m6/` :
+Pas de captures jointes : l'état décrit est vérifiable en direct sur le cluster et dans le dépôt.
 
-1. `argocd-applications.png` : Argo CD, `scoring-prod` et `scoring-staging` Synced / Healthy, source = mon fork,
-   overlays `k8s/overlays/prod` et `k8s/overlays/staging`.
-2. `kfp-ct-run.png` : run `ct-evidently-drift-…` (`3ff82815`) réussi dans KFP, 7 étapes en vert.
-3. `kfp-gate-report.png` : artefact `report` de `promotion-gate` (version 15 PROMUE).
-4. `kfp-validate-failed.png` : run `d453d166` (dérive ×2) arrêté à `validate-data`.
-5. `github-actions.png` : onglet Actions, runs « CI scoring » verts (Lint + tests, Image scoring-api, Déployer en staging).
-6. `isvc-canary.png` : `kubectl get isvc -n scoring` pendant le canary (`PREV 90 / LATEST 10`).
-
-![Argo CD](m6/argocd-applications.png)
-![Run CT dans KFP](m6/kfp-ct-run.png)
-![Rapport de la gate](m6/kfp-gate-report.png)
-![Gate de validation : lot ×2 refusé](m6/kfp-validate-failed.png)
-![GitHub Actions](m6/github-actions.png)
-![Canary KServe](m6/isvc-canary.png)
+- Argo CD : `kubectl get applications.argoproj.io -n argocd` (scoring-prod et scoring-staging Synced / Healthy).
+- KFP : expérience `scoring-ct`, run `3ff82815` réussi (7 étapes), artefact `report` de `promotion-gate`
+  (version 15 PROMUE) ; run `d453d166` (dérive ×2) arrêté à `validate-data`.
+- GitHub Actions : `gh run list --workflow ci.yml` (runs « CI scoring » en succès).
+- KServe : `kubectl get isvc -A` et `python -m pipelines.gitops status` (staging et prod en 2.1.8, modèle v15).
+- Vérification automatique : `make check-m6`, 18/18.
