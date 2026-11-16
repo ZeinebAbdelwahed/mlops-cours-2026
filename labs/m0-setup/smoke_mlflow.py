@@ -1,12 +1,10 @@
-
 """Smoke test MLflow : paramètre, métriques et artefact."""
 
 import os
+
 import mlflow
 
-mlflow.set_tracking_uri(
-    os.environ.get("MLFLOW_TRACKING_URI", "http://localhost:5050")
-)
+mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI", "http://localhost:5050"))
 
 mlflow.set_experiment("smoke-test")
 

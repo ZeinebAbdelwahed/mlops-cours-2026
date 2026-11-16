@@ -32,7 +32,7 @@ class PredictUser(HttpUser):
 
     def on_start(self):
         if ISVC_HOST:
-            self.client.headers["Host"] = ISVC_HOST    # routage Kourier/Knative par nom d'hôte
+            self.client.headers["Host"] = ISVC_HOST  # routage Kourier/Knative par nom d'hôte
 
     @task
     def predict(self):

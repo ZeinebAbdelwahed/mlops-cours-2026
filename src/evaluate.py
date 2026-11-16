@@ -1,4 +1,5 @@
 """Évalue le modèle local (models/model) sur le jeu de test -> reports/metrics.json."""
+
 import json
 from pathlib import Path
 

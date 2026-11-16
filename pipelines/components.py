@@ -15,15 +15,15 @@ import os
 
 from kfp import dsl
 from kfp.dsl import (
+    HTML,
     Artifact,
     ClassificationMetrics,
     Dataset,
     Input,
+    Markdown,
     Metrics,
     Model,
     Output,
-    HTML,
-    Markdown,
 )
 
 # Image construite et poussée à l'étape 2.4. Nouveau code dans l'image = nouveau tag.
@@ -76,7 +76,6 @@ def validate_data(
     summary = json.loads(Path(report.path).read_text())
     for name in ("n_checks", "n_failed", "rows", "positive_rate"):
         checks.log_metric(name, summary[name])
-
 
 
 @dsl.component(base_image=PIPELINE_IMAGE, install_kfp_package=False)

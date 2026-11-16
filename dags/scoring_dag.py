@@ -1,4 +1,5 @@
 """DAG Airflow « scoring_dag » : la variante Airflow du pipeline KFP du Lab 2."""
+
 from datetime import UTC, datetime, timedelta
 
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator

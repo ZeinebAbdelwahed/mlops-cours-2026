@@ -13,9 +13,9 @@ from pathlib import Path
 
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[1]       # racine du repo
+ROOT = Path(__file__).resolve().parents[1]  # racine du repo
 sys.path.append(str(ROOT))
-from src.dataset_config import load_config       # noqa: E402
+from src.dataset_config import load_config  # noqa: E402
 
 cfg = load_config(ROOT / "dataset.yaml")
 

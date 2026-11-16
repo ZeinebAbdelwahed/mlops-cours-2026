@@ -6,6 +6,7 @@ Sorties : data/processed/train.csv, data/processed/test.csv
           et data/processed/features.parquet (source « offline » de Feast).
 Aucun nom de colonne en dur : tout vient de dataset.yaml (load_config).
 """
+
 from pathlib import Path
 
 import pandas as pd

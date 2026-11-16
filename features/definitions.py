@@ -1,4 +1,5 @@
 """Définitions Feast du projet : construites depuis dataset.yaml (aucune colonne en dur)."""
+
 import sys
 from datetime import timedelta
 from pathlib import Path
