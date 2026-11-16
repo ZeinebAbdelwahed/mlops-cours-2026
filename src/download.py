@@ -133,6 +133,7 @@ def main() -> int:
     project_dataset = Path(__file__).resolve().parents[1] / cfg.raw_path
     if project_dataset.exists() and not args.from_file:
         import shutil
+
         destination = Path(cfg.raw_path)
         destination.parent.mkdir(parents=True, exist_ok=True)
         if project_dataset.resolve() != destination.resolve():

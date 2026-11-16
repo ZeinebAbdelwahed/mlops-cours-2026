@@ -1,4 +1,5 @@
 """Entraîne un modèle de scoring et trace le run dans MLflow (expérience « scoring »)."""
+
 import argparse
 import hashlib
 import os

@@ -1,4 +1,5 @@
 """Enregistre un run dans le Model Registry et le promeut avec des alias MLflow."""
+
 import argparse
 import os
 
